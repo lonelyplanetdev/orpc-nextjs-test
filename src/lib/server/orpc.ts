@@ -1,18 +1,39 @@
 import { ORPCError, os } from "@orpc/server";
-import { type ORPCContext } from "@/lib/orpc";
+import { cookies } from "next/headers";
+import { headers } from "next/headers";
 
-const base = os.$context<ORPCContext>().$route({
+const base = os.$route({
   method: "POST",
-  inputStructure: "detailed", // change default input structure to detailed
+  inputStructure: "detailed",
   outputStructure: "detailed",
 });
-const pub = base;
 
-const priv = base.use(async ({ context, next }) => {
-  const { auth } = context;
-  if (!auth) throw new ORPCError("UNAUTHORIZED");
-
-  return next();
+const pub = base.use(async ({ next }) => {
+  return next({
+    context: {
+      headers: await headers(),
+      cookies: await cookies(),
+    },
+  });
 });
 
-export { pub, priv };
+const router = base.router;
+
+const priv = pub.use(async ({ context, next }) => {
+  const { cookies } = context;
+
+  const sessionToken = cookies.get("session")?.value;
+  if (!sessionToken) throw new ORPCError("Unauthorized");
+
+  const auth = { user: { id: "123" } };
+  if (!auth) throw new ORPCError("Unauthorized");
+
+  return next({
+    context: {
+      ...context,
+      auth,
+    },
+  });
+});
+
+export { pub, priv, router };

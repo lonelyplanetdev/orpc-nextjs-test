@@ -1,7 +1,12 @@
-import greeting from "./greeting";
+import { router } from '@/lib/server/orpc';
+import { createRouterClient } from '@orpc/server';
 
-const router = {
+// Sub Routers
+import greeting from './greeting';
+
+const apiRouter = router({
   greeting,
-};
+});
 
-export default router;
+export const api = createRouterClient(apiRouter);
+export default apiRouter;
