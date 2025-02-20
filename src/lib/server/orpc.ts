@@ -17,7 +17,7 @@ const pub = base.use(async ({ next }) => {
   });
 });
 
-const router = base.router;
+const router = base.router.bind(base);
 
 const priv = pub.use(async ({ context, next }) => {
   const { cookies } = context;
